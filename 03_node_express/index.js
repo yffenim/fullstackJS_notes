@@ -8,8 +8,25 @@ function l(arg1, arg2) {
 		console.log(arg1)
 };
 
+// middleware // attention to whether this needs to be before or after routes
+// requestLogger needs to be before
+const requestLogger = (request, response, next) => {
+  l('Method:', request.method)
+  l('Path:  ', request.path)
+  l('Body:  ', request.body)
+  l('---')
+  next()
+};
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
 // use express json-parser
-app.use(express.json());
+app.use(express.json()); // needs to be called first or request.body will not be initialized
+app.use(requestLogger); 
+app.use(unknownEndpoint);
+
 
 // data
 let notes = [  
@@ -72,8 +89,6 @@ app.delete('/api/notes/:id', (request, response) => {
 	response.status(204).end();
 });
 
-
-
 app.get('/', (request, response) => {
 	response.send('<h1>Hello World!</h1>');
 });
@@ -87,6 +102,9 @@ app.get('/effy', (request, response) => {
 	response.send(effy);
 });
 
+
+
+// binding server to port
 const PORT = 3001;
-app.listen(PORT); // binding the http server assigned to app to port 
+app.listen(PORT);
 console.log(`Server runing on port ${PORT}`);
